@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      - PMA_HOST=mysql-app1
+      - PMA_USER=root
+      - PMA_PASSWORD=my-secret-pw
+      - PMA_ARBITRARY=1
+    restart: always
+    ports:
+      - "8090:80"
+    networks:
+      - default
+
+  php-app1:
+    image: php:8.1-apache
+    container_name: php-app1
+    volumes:
+      - ./app1:/var/www/html
+    environment:
+      - VIRTUAL_HOST=app1.donutfy.com
+
+  php-app2:
+    image: php:7.4-apache
+    container_name: php-app2
+    volumes:
+      - ./app2:/var/www/html
+    environment:
+      - VIRTUAL_HOST=app2.donutfy.com
+
+  mysql-app1:
+    image: mysql:5.7
+    container_name: mysql-app1
+    environment:
+      - MYSQL_ROOT_PASSWORD=my-secret-pw
+      - MYSQL_DATABASE=app1
+      - MYSQL_USER=app1
+      - MYSQL_PASSWORD=my-secret-pw
+    volumes:
+      - ./db/db:/var/lib/mysql
+networks:
+  default:
+    external:
+      name: nginx-proxy
+
+
